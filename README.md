@@ -48,7 +48,7 @@ Any AI with a free web interface works:
 - [DeepSeek](https://chat.deepseek.com)
 - [Gemini](https://gemini.google.com)
 - [Grok](https://grok.com)
-- [Perplexity](https://www.perplexity.ai)
+- [Co=Pilot](https://copilot.microsoft.com).
 
 You can also add any custom AI with the ＋ Add button.
 
