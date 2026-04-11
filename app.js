@@ -26,13 +26,14 @@ let phase         = 'draft';
 let builder       = null;
 let history       = [];
 let feedbackBlock = '';
+let hiveMode      = 'brainstorm'; // 'brainstorm' or 'document'
 
 // ── LOCALSTORAGE ──
 const LS = 'aihive_state';
 
 function saveState() {
   const state = {
-    round, phase, builder, history, aiList,
+    round, phase, builder, history, aiList, hiveMode,
     projectVersion: document.getElementById('projectVersion')?.value || '',
     projectName: document.getElementById('projectName')?.value || '',
     projectGoal: document.getElementById('projectGoal')?.value || '',
@@ -56,6 +57,7 @@ function loadState() {
     phase   = s.phase   || 'draft';
     history = s.history || [];
     if (s.aiList && s.aiList.length) aiList = s.aiList;
+    if (s.hiveMode) { hiveMode = s.hiveMode; }
     const savedBuilder = s.builder || null;
     builder = (savedBuilder && aiList.find(ai => ai.id === savedBuilder)) ? savedBuilder : null;
 
@@ -91,6 +93,7 @@ function clearState() {
   builder       = null;
   history       = [];
   feedbackBlock = '';
+  hiveMode      = 'brainstorm';
   aiList        = JSON.parse(JSON.stringify(DEFAULT_AIS));
   localStorage.removeItem(LS);
 
@@ -318,6 +321,50 @@ If there are no conflicts write exactly: NO CONFLICTS
 [CONFLICTS END]`,
 
 };
+
+// ── BRAINSTORM PROMPTS ──
+const BRAINSTORM_REVIEWER_PROMPT = `You are one of several AIs being asked to weigh in on a question or problem. Be direct, honest, and specific. Do not hedge or give diplomatic non-answers.
+
+Give your genuine assessment. If you think something is a bad idea, say so. If you think something is a great idea, say so and explain why.
+
+Respond in plain prose — no bullet lists, no headers, no markdown formatting. Just your honest take, as if you were a trusted advisor speaking frankly.
+
+Keep your response focused and under 300 words.`;
+
+const BRAINSTORM_BUILDER_PROMPT = `You are synthesizing responses from multiple AIs who were each asked the same question. Your job is to consolidate their perspectives into a clear, useful summary.
+
+Do not just list what each AI said. Instead:
+- Identify the key themes and points of agreement
+- Note any significant disagreements or contrasting perspectives
+- Distill the most actionable insights or recommendations
+- End with a clear bottom-line recommendation or conclusion if one emerges from the consensus
+
+Write in plain prose. No bullet lists, no headers, no markdown. Be direct and concise — aim for under 400 words.`;
+
+// ── MODE SWITCHING ──
+function setHiveMode(mode) {
+  hiveMode = mode;
+  document.getElementById('modeBrainstorm').classList.toggle('mode-btn-active', mode === 'brainstorm');
+  document.getElementById('modeDocument').classList.toggle('mode-btn-active', mode === 'document');
+  // Show/hide phase bar
+  const phaseBar = document.getElementById('phaseBar');
+  if (phaseBar) phaseBar.parentElement.style.display = mode === 'brainstorm' ? 'none' : '';
+  // Update placeholders
+  const goalTa = document.getElementById('projectGoal');
+  if (goalTa) goalTa.placeholder = mode === 'brainstorm'
+    ? 'What do you want to ask the hive? Ask a question, describe a problem, or get opinions on anything.'
+    : 'What are you working on? Set a document goal — the hive will draft and refine it for you.';
+  const promptTa = document.getElementById('masterPrompt');
+  if (promptTa) promptTa.placeholder = mode === 'brainstorm'
+    ? 'Optional — paste any background context here to include with your question.'
+    : 'Paste your working document here each round, or leave blank to start from scratch.';
+  // Update col 3 header
+  const col3title = document.getElementById('col3title');
+  if (col3title) col3title.textContent = mode === 'brainstorm' ? 'Background Context (optional)' : 'Working Document';
+  updateStatusBar();
+  saveState();
+  toast(mode === 'brainstorm' ? '🐝 Brainstorm mode — ask the hive anything' : '📄 Document mode — draft and refine');
+}
 
 // Per-phase edits saved by user
 const phaseEdits = {};
@@ -642,6 +689,28 @@ function buildSendBlock() {
   const projectGoal = getProjectGoal();
   const phasePrompt = getPhasePrompt();
   const isScratch = !doc; // no document = starting from scratch
+
+  // ── BRAINSTORM MODE ──
+  if (hiveMode === 'brainstorm') {
+    if (!projectGoal) { toast('⚠️ Enter your question or topic first'); return; }
+    const isBuilderRound = filled.length > 0;
+    let block = `${eq}\n  AI HIVE — ${projectName.toUpperCase() || 'BRAINSTORM'}\n  Round ${round} · Brainstorm Mode\n${eq}\n\n`;
+    block += `QUESTION / TOPIC:\n${sep}\n${projectGoal}\n\n`;
+    if (doc) block += `BACKGROUND CONTEXT:\n${sep}\n${doc}\n\n`;
+    if (isBuilderRound) {
+      block += filled.map(ai => `${sep}\nFROM ${ai.name.toUpperCase()}:\n${sep}\n${resp[ai.id]}\n\n`).join('');
+      block += `${sep}\n⚠️ SEND THIS TO YOUR BUILDER AI ONLY\n${sep}\n\n`;
+      block += `${eq}\n  INSTRUCTIONS\n${eq}\n` + BRAINSTORM_BUILDER_PROMPT;
+    } else {
+      block += `${sep}\nSEND TO ALL AIs\n${sep}\n\n`;
+      block += `${eq}\n  INSTRUCTIONS\n${eq}\n` + BRAINSTORM_REVIEWER_PROMPT;
+    }
+    document.getElementById('sendBlock').value = feedbackBlock = block;
+    saveState();
+    updateStatusBar();
+    toast('⚡ Prompt ready — copy and paste into AI tabs');
+    return;
+  }
 
   // Guards: review phase just needs the document; scratch needs nothing; others need doc or responses
   if (phase === 'review' && !doc) {
@@ -1015,6 +1084,7 @@ function initTheme() {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   loadState();
+  setHiveMode(hiveMode);
   document.querySelectorAll('textarea').forEach(ta => {
     ta.addEventListener('input', () => saveState());
   });

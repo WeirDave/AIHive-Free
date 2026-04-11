@@ -66,6 +66,12 @@
     </div>
   </div>
 
+  <!-- Mode selector -->
+  <div class="mode-selector">
+    <button id="modeBrainstorm" class="mode-btn mode-btn-active" onclick="setHiveMode('brainstorm')">🐝 Brainstorm</button>
+    <button id="modeDocument"   class="mode-btn"                 onclick="setHiveMode('document')">📄 Document</button>
+  </div>
+
   <!-- Step 1: Project details -->
   <div class="col-header">
     <div class="col-title"><div class="step-num">1</div> Project Details</div>
@@ -114,7 +120,7 @@
   <!-- Col 3: Working Document -->
   <div class="col">
     <div class="col-header">
-      <div class="col-title"><div class="step-num">3</div> Working Document</div>
+      <div class="col-title"><div class="step-num">3</div> <span id="col3title">Background Context (optional)</span></div>
     </div>
     <div class="col-body col-body-prompt">
       <div class="doc-card">

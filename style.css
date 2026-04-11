@@ -267,6 +267,26 @@ header {
 .hdr-btns .btn:hover { background: var(--accent-dim); }
 
 
+/* ── MODE SELECTOR ── */
+.mode-selector { display: flex; gap: 6px; padding: 10px 12px 4px; flex-shrink: 0; }
+.mode-btn {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 6px;
+  transition: all 0.15s;
+  text-align: center;
+}
+.mode-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.mode-btn-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.mode-btn-active:hover { background: var(--accent-hover); }
+
 /* ── 7. SIDEBAR ── */
 
 .col-sidebar {
