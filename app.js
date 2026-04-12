@@ -11,12 +11,12 @@ const PHASES = [
 
 // ── DEFAULT AI LIST ──
 const DEFAULT_AIS = [
-  { id: 'chatgpt',    name: 'ChatGPT',    url: 'https://chatgpt.com',           icon: 'https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64',        active: true },
-  { id: 'claude',     name: 'Claude',     url: 'https://claude.ai',             icon: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=64',           active: true },
-  { id: 'deepseek',   name: 'DeepSeek',   url: 'https://chat.deepseek.com',     icon: 'https://www.google.com/s2/favicons?domain=chat.deepseek.com&sz=64',   active: true },
-  { id: 'gemini',     name: 'Gemini',     url: 'https://gemini.google.com',     icon: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64',   active: true },
-  { id: 'grok',       name: 'Grok',       url: 'https://grok.com',              icon: 'https://www.google.com/s2/favicons?domain=grok.com&sz=64',            active: true },
-  { id: 'copilot',    name: 'Copilot',    url: 'https://copilot.microsoft.com', icon: 'https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64', active: true },
+  { id: 'chatgpt',    name: 'ChatGPT',    url: 'https://chatgpt.com',           icon: 'https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64',        fallback: 'https://chatgpt.com/favicon.ico',        local: 'images/icon-chatgpt.png',    active: true },
+  { id: 'claude',     name: 'Claude',     url: 'https://claude.ai',             icon: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=64',           fallback: 'https://claude.ai/favicon.ico',           local: 'images/icon-claude.png',     active: true },
+  { id: 'deepseek',   name: 'DeepSeek',   url: 'https://chat.deepseek.com',     icon: 'https://www.google.com/s2/favicons?domain=chat.deepseek.com&sz=64',   fallback: 'https://chat.deepseek.com/favicon.ico',   local: 'images/icon-deepseek.png',   active: true },
+  { id: 'gemini',     name: 'Gemini',     url: 'https://gemini.google.com',     icon: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64',   fallback: 'https://gemini.google.com/favicon.ico',   local: 'images/icon-gemini.png',     active: true },
+  { id: 'grok',       name: 'Grok',       url: 'https://grok.com',              icon: 'https://www.google.com/s2/favicons?domain=grok.com&sz=64',            fallback: 'https://grok.com/favicon.ico',            local: 'images/icon-grok.png',       active: true },
+  { id: 'copilot',    name: 'Copilot',    url: 'https://copilot.microsoft.com', icon: 'https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64', fallback: 'https://copilot.microsoft.com/favicon.ico', local: 'images/icon-copilot.png',  active: true },
 ];
 
 // ── STATE ──
@@ -431,7 +431,7 @@ function renderAIPanel() {
         <input type="checkbox" ${ai.active ? 'checked' : ''} onchange="toggleAI('${ai.id}', this.checked)">
       </label>
       <div class="ai-row-label ${!ai.active ? 'ai-inactive' : ''}">
-        <img src="${ai.icon}" class="ai-icon${ai.invert ? ' ai-icon-invert' : ''}" onerror="this.style.display='none'">
+        <img src="${ai.icon}" data-fallback="${ai.fallback}" data-local="${ai.local}" class="ai-icon${ai.invert ? ' ai-icon-invert' : ''}" onerror="this.onerror=null;this.src=this.dataset.local;">
         <span class="ai-name">${ai.name}</span>
       </div>
       <div class="ai-row-actions">
@@ -455,7 +455,7 @@ function renderResponsePanels() {
   container.innerHTML = active.map(ai => `
     <div class="resp-card ${ai.id === builder ? 'is-builder' : ''}" id="panel-${ai.id}">
       <div class="resp-card-header">
-        <img src="${ai.icon}" class="resp-card-icon${ai.invert ? ' resp-card-icon-invert' : ''}" onerror="this.style.display='none'">
+        <img src="${ai.icon}" data-fallback="${ai.fallback}" data-local="${ai.local}" class="resp-card-icon${ai.invert ? ' resp-card-icon-invert' : ''}" onerror="this.onerror=null;this.src=this.dataset.local;">
         <div class="resp-card-name">${ai.name}</div>
         ${ai.id === builder ? '<div class="resp-card-builder-badge"><span style="font-size:14px;">👑</span><span>Builder</span></div>' : ''}
         <div class="resp-card-status" id="cnt-${ai.id}">Waiting…</div>
