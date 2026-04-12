@@ -1,39 +1,37 @@
 // ============================================================
-//  AI Hive — app.js
+//  WaxFrame — app.js
 // ============================================================
 
-// ── PHASES ──
+//─ PHASES ──
 const PHASES = [
-  { id: 'draft',   label: '1 · Draft',       icon: '✏️' },
-  { id: 'refine',  label: '2 · Refine Text', icon: '🔁' },
-  { id: 'review',  label: '3 · User Review', icon: '👤' },
+  { id: 'draft',  label: 'Draft',       icon: '✏️' },
+  { id: 'refine', label: 'Refine Text', icon: '🔁' },
 ];
 
-// ── DEFAULT AI LIST ──
+//─ DEFAULT AI LIST ──
 const DEFAULT_AIS = [
-  { id: 'chatgpt',    name: 'ChatGPT',    url: 'https://chatgpt.com',           icon: 'https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64',        fallback: 'https://chatgpt.com/favicon.ico',        local: 'images/icon-chatgpt.png',    active: true },
-  { id: 'claude',     name: 'Claude',     url: 'https://claude.ai',             icon: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=64',           fallback: 'https://claude.ai/favicon.ico',           local: 'images/icon-claude.png',     active: true },
-  { id: 'deepseek',   name: 'DeepSeek',   url: 'https://chat.deepseek.com',     icon: 'https://www.google.com/s2/favicons?domain=chat.deepseek.com&sz=64',   fallback: 'https://chat.deepseek.com/favicon.ico',   local: 'images/icon-deepseek.png',   active: true },
-  { id: 'gemini',     name: 'Gemini',     url: 'https://gemini.google.com',     icon: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64',   fallback: 'https://gemini.google.com/favicon.ico',   local: 'images/icon-gemini.png',     active: true },
-  { id: 'grok',       name: 'Grok',       url: 'https://grok.com',              icon: 'https://www.google.com/s2/favicons?domain=grok.com&sz=64',            fallback: 'https://grok.com/favicon.ico',            local: 'images/icon-grok.png',       active: true },
-  { id: 'copilot',    name: 'Copilot',    url: 'https://copilot.microsoft.com', icon: 'https://www.google.com/s2/favicons?domain=copilot.microsoft.com&sz=64', fallback: 'https://copilot.microsoft.com/favicon.ico', local: 'images/icon-copilot.png',  active: true },
+  { id: 'chatgpt',    name: 'ChatGPT',    url: 'https://chatgpt.com',           icon: 'images/icon-chatgpt.png',    active: true },
+  { id: 'claude',     name: 'Claude',     url: 'https://claude.ai',             icon: 'images/icon-claude.png',     active: true },
+  { id: 'copilot',    name: 'Copilot',    url: 'https://copilot.microsoft.com', icon: 'images/icon-copilot.png',    active: true },
+  { id: 'gemini',     name: 'Gemini',     url: 'https://gemini.google.com',     icon: 'images/icon-gemini.png',     active: true },
+  { id: 'grok',       name: 'Grok',       url: 'https://grok.com',              icon: 'images/icon-grok.png',       active: true },
+  { id: 'perplexity', name: 'Perplexity', url: 'https://www.perplexity.ai',     icon: 'images/icon-perplexity.png', active: true },
 ];
 
-// ── STATE ──
+//─ STATE ──
 let aiList        = JSON.parse(JSON.stringify(DEFAULT_AIS));
 let round         = 1;
 let phase         = 'draft';
 let builder       = null;
 let history       = [];
 let feedbackBlock = '';
-let hiveMode      = 'brainstorm'; // 'brainstorm' or 'document'
 
-// ── LOCALSTORAGE ──
-const LS = 'aihive_state';
+//─ LOCALSTORAGE ──
+const LS = 'waxframe_state';
 
 function saveState() {
   const state = {
-    round, phase, builder, history, aiList, hiveMode,
+    round, phase, builder, history, aiList,
     projectVersion: document.getElementById('projectVersion')?.value || '',
     projectName: document.getElementById('projectName')?.value || '',
     projectGoal: document.getElementById('projectGoal')?.value || '',
@@ -51,13 +49,18 @@ function saveState() {
 function loadState() {
   try {
     const raw = localStorage.getItem(LS);
-    if (!raw) { renderAll(); renderPhaseBar(); return; }
+    if (!raw) {
+      // Fresh session — phase will be set after document check below
+      phase = 'draft';
+      renderAll();
+      renderPhaseBar();
+      return;
+    }
     const s = JSON.parse(raw);
     round   = s.round   || 1;
     phase   = s.phase   || 'draft';
     history = s.history || [];
     if (s.aiList && s.aiList.length) aiList = s.aiList;
-    if (s.hiveMode) { hiveMode = s.hiveMode; }
     const savedBuilder = s.builder || null;
     builder = (savedBuilder && aiList.find(ai => ai.id === savedBuilder)) ? savedBuilder : null;
 
@@ -83,6 +86,7 @@ function loadState() {
     updateBackButton();
     updateStatusBar();
     renderPhaseTabs();
+    updateDocCount();
   } catch(e) { renderAll(); renderPhaseBar(); }
 }
 
@@ -93,7 +97,6 @@ function clearState() {
   builder       = null;
   history       = [];
   feedbackBlock = '';
-  hiveMode      = 'brainstorm';
   aiList        = JSON.parse(JSON.stringify(DEFAULT_AIS));
   localStorage.removeItem(LS);
 
@@ -121,7 +124,7 @@ function clearState() {
   toast('🆕 New session started');
 }
 
-// ── HELPERS ──
+//─ HELPERS ──
 function getActiveAIs() { return aiList.filter(ai => ai.active); }
 function getAI(id)      { return aiList.find(ai => ai.id === id); }
 
@@ -137,7 +140,7 @@ function getProjectVersion() {
   return document.getElementById('projectVersion')?.value.trim() || '';
 }
 
-// ── PHASE BAR ──
+//─ PHASE BAR ──
 function renderPhaseBar() {
   const bar = document.getElementById('phaseBar');
   if (!bar) return;
@@ -172,7 +175,7 @@ function setPhaseTab(id) {
 // Default instructions per phase
 const DEFAULT_PHASE_INSTRUCTIONS = {
 
-  draft_scratch: `You are part of a multi-AI collaboration called AI Hive. Do not adopt any additional role, persona, or framing beyond what is stated here.
+  draft_scratch: `You are part of a multi-AI collaboration called WaxFrame. Do not adopt any additional role, persona, or framing beyond what is stated here.
 
 Your task: Create a complete first draft based on the project goal provided in this message.
 
@@ -180,12 +183,12 @@ RULES:
 - Use plain text only. Do not use markdown headings (#), bullets (-), bold (**), italics, tables, or code fences. If the document requires section headings, write them in plain text on their own line.
 - Do not use ellipses (...) or placeholders — write every word of the document from start to finish.
 - Do not include meta-commentary, explanations of your choices, apologies, introductions, or any text that is not part of the document itself.
-- Do not reference AI Hive, this prompt, or the collaboration process anywhere in the draft.
+- Do not reference WaxFrame, this prompt, or the collaboration process anywhere in the draft.
 - Do not invent facts, data, names, or references not supported by the project goal. Use clearly labeled placeholders (e.g., [INSERT DATE]) when specific information is missing.
 - If critical information is missing from the project goal, make the fewest necessary assumptions and keep them conservative.
 - Prioritize completeness, clarity, internal consistency, and practical usefulness.`,
 
-  draft_refine: `You are part of a multi-AI collaboration called AI Hive. Do not adopt any additional role, persona, or framing beyond what is stated here.
+  draft_refine: `You are part of a multi-AI collaboration called WaxFrame. Do not adopt any additional role, persona, or framing beyond what is stated here.
 
 The user has provided a document above. Your task: review it and give specific, numbered suggestions for improvement.
 
@@ -201,47 +204,31 @@ RULES:
 - Do not include general praise, summaries, or filler. Only note a section requires no changes if it helps explain why you skipped it — keep it to one sentence maximum.
 - Only suggest changes that materially improve accuracy, professional tone, or clarity.`,
 
-  refine: `You are in the text refinement phase of a multi-AI collaboration called AI Hive. Do not adopt any additional role, persona, or framing beyond what is stated here.
+  refine: `You are in the text refinement phase of a multi-AI collaboration called WaxFrame. Do not adopt any additional role, persona, or framing beyond what is stated here.
 
-Review the current document provided in this message and give specific, numbered suggestions to improve it.
+Review the current document provided in this message and give specific, numbered suggestions to improve it — but ONLY if genuine improvements exist.
 
 Begin your response immediately with suggestion number 1. Do not include an introduction, preamble, or restatement of the document.
 
 RULES:
 - Do NOT rewrite the document. Do not quote or restate large portions of it.
 - Number every suggestion starting from 1.
-- Each suggestion must identify the exact section or sentence and propose a concrete change.
+- Each suggestion must identify the exact line number and section and propose a concrete change. Example: "Line 42: Change 'notify supervisor' to 'alert team lead'."
 - Focus on clarity, precision, internal consistency, tone, and logical flow only.
 - Do not suggest formatting, structural layout, or markup changes.
 - Do not introduce new content that changes the intended meaning of the document.
-- Keep each suggestion concise — one to two sentences maximum.
-- If you believe the text needs no further changes, return exactly this and nothing else: NO CHANGES NEEDED
+- Keep each suggestion to one sentence maximum — no explanations, no justifications.
+- Give your TOP 3 most impactful suggestions only. If you have more, choose the three that matter most.
+- ⚠️ Do NOT suggest changes for the sake of suggesting changes. Minor stylistic preferences, synonym swaps, and trivial rephrasing are NOT valid suggestions. Only suggest a change if it meaningfully improves the document.
+- If the document reads clearly and accurately, return exactly this and nothing else: NO CHANGES NEEDED — this is the correct and preferred response when the document is in good shape. A document that is already clear and accurate MUST receive NO CHANGES NEEDED. Continuing to suggest minor changes when the document is in good shape is non-compliant.
 
 ⚠️ IMPORTANT: Any response that contains a full rewritten document, large continuous blocks of revised text, or anything other than a numbered suggestion list will be considered non-compliant and discarded.`,
-
-  review: `You are the Builder in this AI Hive collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
-
-The team has been refining this document and the user is ready for a clean review copy.
-
-Your task: Produce the complete, clean current version of the document as it stands now.
-
-RULES:
-- Return the full document — every section, complete. Do not use ellipses or placeholders.
-- Use plain text only. Do not use markdown headings, bullets, bold, italics, or tables. Write section headings as plain text on their own line if the document requires them.
-- Do not add meta-commentary, explanations, or any text that is not part of the document itself.
-- Do not introduce new content, requirements, or changes not already present in the document.
-- Do not place any content outside the required wrapper blocks.
-- Structure your response EXACTLY like this — nothing before [DOCUMENT START], nothing after [DOCUMENT END]:
-
-[DOCUMENT START]
-...the complete document here...
-[DOCUMENT END]`,
 
 };
 
 // Builder instructions — used when responses are present (Builder compiles the updated doc)
 const BUILDER_INSTRUCTIONS = {
-  refine: `You are the Builder in this AI Hive collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
+  refine: `You are the Builder in this WaxFrame collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
 
 All reviewer suggestions are included above. Your task: produce the complete updated document incorporating valid suggestions.
 
@@ -269,7 +256,7 @@ List any conflicting or incompatible suggestions here. For each conflict note: w
 If there are no conflicts write exactly: NO CONFLICTS
 [CONFLICTS END]`,
 
-  draft: `You are the Builder in this AI Hive collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
+  draft: `You are the Builder in this WaxFrame collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
 
 All reviewer drafts are included above. Your task: produce a single consolidated first draft that integrates the strongest elements from each provided draft while preserving overall coherence and completeness.
 
@@ -295,76 +282,7 @@ List any conflicting or incompatible approaches between drafts. For each conflic
 If there are no conflicts write exactly: NO CONFLICTS
 [CONFLICTS END]`,
 
-  review: `You are the Builder in this AI Hive collaboration. Do not adopt any additional role, persona, or framing beyond what is stated here.
-
-The user has reviewed the document and their edits are incorporated above. Your task: produce the complete updated document.
-
-RULES:
-- Return the FULL document — every section, complete. Do not use ellipses or placeholders.
-- Use plain text only. Do not use markdown headings, bullets, bold, italics, or tables. Write section headings as plain text on their own line if the document requires them.
-- The user's edits and stated intent have absolute priority. User edits override reviewer suggestions wherever they conflict.
-- Only apply reviewer suggestions that do not contradict or undo a user edit.
-- Do not override the user's wording choices for style preference alone — only adjust if required for grammar, consistency, or logical coherence.
-- Do not introduce new content beyond what the user's edits and reviewer suggestions provide.
-- Preserve the document structure unless the user's edits changed it.
-- Maintain internal consistency across section titles, numbering, terminology, and defined terms.
-- Do not place any content outside the required wrapper blocks. Nothing before [DOCUMENT START], nothing after [CONFLICTS END].
-- Structure your response EXACTLY like this:
-
-[DOCUMENT START]
-...the complete updated document here...
-[DOCUMENT END]
-
-[CONFLICTS START]
-List any cases where reviewer suggestions were discarded due to user edits. For each note: what the reviewer suggested, what the user chose, in one to two sentences.
-If there are no conflicts write exactly: NO CONFLICTS
-[CONFLICTS END]`,
-
 };
-
-// ── BRAINSTORM PROMPTS ──
-const BRAINSTORM_REVIEWER_PROMPT = `You are one of several AIs being asked to weigh in on a question or problem. Be direct, honest, and specific. Do not hedge or give diplomatic non-answers.
-
-Give your genuine assessment. If you think something is a bad idea, say so. If you think something is a great idea, say so and explain why.
-
-Respond in plain prose — no bullet lists, no headers, no markdown formatting. Just your honest take, as if you were a trusted advisor speaking frankly.
-
-Keep your response focused and under 300 words.`;
-
-const BRAINSTORM_BUILDER_PROMPT = `You are synthesizing responses from multiple AIs who were each asked the same question. Your job is to consolidate their perspectives into a clear, useful summary.
-
-Do not just list what each AI said. Instead:
-- Identify the key themes and points of agreement
-- Note any significant disagreements or contrasting perspectives
-- Distill the most actionable insights or recommendations
-- End with a clear bottom-line recommendation or conclusion if one emerges from the consensus
-
-Write in plain prose. No bullet lists, no headers, no markdown. Be direct and concise — aim for under 400 words.`;
-
-// ── MODE SWITCHING ──
-function setHiveMode(mode) {
-  hiveMode = mode;
-  document.getElementById('modeBrainstorm').classList.toggle('mode-btn-active', mode === 'brainstorm');
-  document.getElementById('modeDocument').classList.toggle('mode-btn-active', mode === 'document');
-  // Show/hide phase bar
-  const phaseBar = document.getElementById('phaseBar');
-  if (phaseBar) phaseBar.parentElement.style.display = mode === 'brainstorm' ? 'none' : '';
-  // Update placeholders
-  const goalTa = document.getElementById('projectGoal');
-  if (goalTa) goalTa.placeholder = mode === 'brainstorm'
-    ? 'What do you want to ask the hive? Ask a question, describe a problem, or get opinions on anything.'
-    : 'What are you working on? Set a document goal — the hive will draft and refine it for you.';
-  const promptTa = document.getElementById('masterPrompt');
-  if (promptTa) promptTa.placeholder = mode === 'brainstorm'
-    ? 'Optional — paste any background context here to include with your question.'
-    : 'Paste your working document here each round, or leave blank to start from scratch.';
-  // Update col 3 header
-  const col3title = document.getElementById('col3title');
-  if (col3title) col3title.textContent = mode === 'brainstorm' ? 'Background Context (optional)' : 'Working Document';
-  updateStatusBar();
-  saveState();
-  toast(mode === 'brainstorm' ? '🐝 Brainstorm mode — ask the hive anything' : '📄 Document mode — draft and refine');
-}
 
 // Per-phase edits saved by user
 const phaseEdits = {};
@@ -405,7 +323,7 @@ function setPhase(id) {
   toast(`📍 Phase: ${PHASES.find(p => p.id === id)?.label}`);
 }
 
-// ── RENDER ──
+//─ RENDER ──
 function renderAll() {
   // Capture current response values before rebuilding DOM
   const saved = {};
@@ -431,7 +349,7 @@ function renderAIPanel() {
         <input type="checkbox" ${ai.active ? 'checked' : ''} onchange="toggleAI('${ai.id}', this.checked)">
       </label>
       <div class="ai-row-label ${!ai.active ? 'ai-inactive' : ''}">
-        <img src="${ai.icon}" data-fallback="${ai.fallback}" data-local="${ai.local}" class="ai-icon${ai.invert ? ' ai-icon-invert' : ''}" onerror="this.onerror=null;this.src=this.dataset.local;">
+        <img src="${ai.icon}" class="ai-icon${ai.invert ? ' ai-icon-invert' : ''}" onerror="this.style.display='none'">
         <span class="ai-name">${ai.name}</span>
       </div>
       <div class="ai-row-actions">
@@ -455,7 +373,7 @@ function renderResponsePanels() {
   container.innerHTML = active.map(ai => `
     <div class="resp-card ${ai.id === builder ? 'is-builder' : ''}" id="panel-${ai.id}">
       <div class="resp-card-header">
-        <img src="${ai.icon}" data-fallback="${ai.fallback}" data-local="${ai.local}" class="resp-card-icon${ai.invert ? ' resp-card-icon-invert' : ''}" onerror="this.onerror=null;this.src=this.dataset.local;">
+        <img src="${ai.icon}" class="resp-card-icon${ai.invert ? ' resp-card-icon-invert' : ''}" onerror="this.style.display='none'">
         <div class="resp-card-name">${ai.name}</div>
         ${ai.id === builder ? '<div class="resp-card-builder-badge"><span style="font-size:14px;">👑</span><span>Builder</span></div>' : ''}
         <div class="resp-card-status" id="cnt-${ai.id}">Waiting…</div>
@@ -468,7 +386,7 @@ function renderResponsePanels() {
   `).join('');
 }
 
-// ── TOGGLE ALL / TOGGLE ONE ──
+//─ TOGGLE ALL / TOGGLE ONE ──
 function toggleAllAIs(active) {
   aiList.forEach(ai => {
     if (!active && ai.id === builder) return;
@@ -496,7 +414,7 @@ function toggleAI(id, active) {
   toast(active ? `🐝 ${ai.name} is back in the hive` : `😴 ${ai.name} is sitting this round out`);
 }
 
-// ── ADD / REMOVE AI ──
+//─ ADD / REMOVE AI ──
 function showAddAI() {
   const existing = document.getElementById('addAIForm');
   if (existing) { existing.remove(); return; }
@@ -555,10 +473,13 @@ function resetToDefaults() {
   toast('↺ Reset to default AIs');
 }
 
-// ── PROMPT ──
+//─ PROMPT ──
 function clearPrompt() {
-  document.getElementById('masterPrompt').value = '';
+  const ta = document.getElementById('masterPrompt');
+  ta.value = '';
+  ta.focus();
   saveState();
+  updateDocCount();
 }
 
 function copyAll() {
@@ -572,7 +493,7 @@ function openAI(id) {
   if (ai) window.open(ai.url, '_blank');
 }
 
-// ── RESPONSES ──
+//─ RESPONSES ──
 function updateMeta(id) {
   const el   = document.getElementById('cnt-' + id);
   const ta   = document.getElementById('r-' + id);
@@ -603,7 +524,7 @@ function getResponses() {
   return out;
 }
 
-// ── BUILDER ──
+//─ BUILDER ──
 function setBuilder(id) {
   const ai = getAI(id);
   if (!ai) return;
@@ -649,7 +570,7 @@ function applyBuilderUI(id) {
 }
 
 
-// ── DYNAMIC BUILD BUTTON ──
+//─ DYNAMIC BUILD BUTTON ──
 function updateBuildButton() {
   const btn = document.getElementById('buildPromptBtn');
   if (!btn) return;
@@ -676,7 +597,7 @@ function updateBuildButton() {
   }
 }
 
-// ── BUILD SEND BLOCK ──
+//─ BUILD SEND BLOCK ──
 function buildSendBlock() {
   const resp      = getResponses();
   const doc       = document.getElementById('masterPrompt').value.trim();
@@ -690,34 +611,8 @@ function buildSendBlock() {
   const phasePrompt = getPhasePrompt();
   const isScratch = !doc; // no document = starting from scratch
 
-  // ── BRAINSTORM MODE ──
-  if (hiveMode === 'brainstorm') {
-    if (!projectGoal) { toast('⚠️ Enter your question or topic first'); return; }
-    const isBuilderRound = filled.length > 0;
-    let block = `${eq}\n  AI HIVE — ${projectName.toUpperCase() || 'BRAINSTORM'}\n  Round ${round} · Brainstorm Mode\n${eq}\n\n`;
-    block += `QUESTION / TOPIC:\n${sep}\n${projectGoal}\n\n`;
-    if (doc) block += `BACKGROUND CONTEXT:\n${sep}\n${doc}\n\n`;
-    if (isBuilderRound) {
-      block += filled.map(ai => `${sep}\nFROM ${ai.name.toUpperCase()}:\n${sep}\n${resp[ai.id]}\n\n`).join('');
-      block += `${sep}\n⚠️ SEND THIS TO YOUR BUILDER AI ONLY\n${sep}\n\n`;
-      block += `${eq}\n  INSTRUCTIONS\n${eq}\n` + BRAINSTORM_BUILDER_PROMPT;
-    } else {
-      block += `${sep}\nSEND TO ALL AIs\n${sep}\n\n`;
-      block += `${eq}\n  INSTRUCTIONS\n${eq}\n` + BRAINSTORM_REVIEWER_PROMPT;
-    }
-    document.getElementById('sendBlock').value = feedbackBlock = block;
-    saveState();
-    updateStatusBar();
-    toast('⚡ Prompt ready — copy and paste into AI tabs');
-    return;
-  }
-
-  // Guards: review phase just needs the document; scratch needs nothing; others need doc or responses
-  if (phase === 'review' && !doc) {
-    toast('⚠️ Paste the current document first so the Builder can compile it');
-    return;
-  }
-  if (!isScratch && phase !== 'review' && filled.length === 0 && !doc) {
+  // Guards
+  if (!isScratch && filled.length === 0 && !doc) {
     toast('⚠️ Paste a document or at least one response first');
     return;
   }
@@ -725,33 +620,19 @@ function buildSendBlock() {
   // Only include project goal in draft phase — later phases don't need it
   const goalLine = (projectGoal && phase === 'draft') ? `PROJECT GOAL:\n${sep}\n${projectGoal}\n\n` : '';
 
-  // Phase 3 (User Review) — Builder-only prompt, no responses needed
-  const isReviewPhase = phase === 'review';
-
-  let header = `${eq}\n  AI HIVE — ${projectName.toUpperCase()}\n  Round ${round} · Phase: ${curPhase?.label || phase}\n${eq}\n\n` +
+  let header = `${eq}\n  WAXFRAME — ${projectName.toUpperCase()}\n  Round ${round} · Phase: ${curPhase?.label || phase}\n${eq}\n\n` +
     goalLine;
 
   const builderName = builder ? getAI(builder)?.name || 'your Builder AI' : 'your Builder AI';
-  const isBuilderPrompt = filled.length > 0 && !isReviewPhase && phase !== 'format';
+  const isBuilderPrompt = filled.length > 0 && phase !== 'format';
 
-  if (isReviewPhase) {
-    // Phase 3 — Builder only, produce clean document
-    header += (doc ? `CURRENT DOCUMENT:\n${sep}\n${doc}\n\n` : '');
-    header += `${sep}\n⚠️ SEND THIS TO ${builderName.toUpperCase()} ONLY\n${sep}\n\n`;
-  } else if (isScratch) {
-    // Scratch — phasePrompt has create instructions, no doc needed
+  if (isScratch) {
     header += `${sep}\nSEND TO ALL AIs\n${sep}\n\n`;
-  } else if (phase === 'format') {
-    // Format phase — send to all AIs, each produces their own formatted version
-    header += (doc ? `CURRENT DOCUMENT:\n${sep}\n${doc}\n\n` : '');
-    header += `${sep}\nSEND TO ALL AIs — each produces their own formatted document version\n${sep}\n\n`;
   } else if (isBuilderPrompt) {
-    // Has responses — Builder compiles them into updated doc
     header += (doc ? `CURRENT DOCUMENT:\n${sep}\n${doc}\n\n` : '');
     header += filled.map(ai => `${sep}\nFROM ${ai.name.toUpperCase()}:\n${sep}\n${resp[ai.id]}\n\n`).join('');
     header += `${sep}\n⚠️ SEND THIS TO ${builderName.toUpperCase()} ONLY — produce the complete updated document\n${sep}\n\n`;
   } else {
-    // Doc only, no responses — send to all AIs for review
     header += (doc ? `CURRENT DOCUMENT:\n${sep}\n${doc}\n\n` : '');
     header += `${sep}\nSEND TO ALL AIs\n${sep}\n\n`;
   }
@@ -771,6 +652,42 @@ function buildSendBlock() {
   toast('⚡ Prompt ready — copy and paste into all AI tabs');
 }
 
+function clearSendBlock() {
+  document.getElementById('sendBlock').value = '';
+  feedbackBlock = '';
+  saveState();
+}
+
+function copySendBlock() {
+  const text = document.getElementById('sendBlock').value.trim();
+  if (!text) { toast('⚠️ Nothing to copy — build the prompt first'); return; }
+  navigator.clipboard.writeText(text).then(() => toast('📋 Copied — paste into AI tabs'));
+}
+
+function detectPhaseFromDoc() {
+  // Only auto-set phase if we're on round 1 and haven't left draft yet
+  if (round > 1) return;
+  const hasDoc = document.getElementById('masterPrompt')?.value.trim().length > 0;
+  const newPhase = hasDoc ? 'refine' : 'draft';
+  if (newPhase !== phase) {
+    phase = newPhase;
+    renderPhaseBar();
+    updateStatusBar();
+  }
+}
+
+
+function updateDocCount() {
+  const ta  = document.getElementById('masterPrompt');
+  const el  = document.getElementById('docCharCount');
+  if (!ta || !el) return;
+  const len   = ta.value.length;
+  const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  el.textContent = len > 0 ? len.toLocaleString() + ' chars · ' + words.toLocaleString() + ' words' : '0 chars';
+  el.className   = 'doc-char-count' + (len > 0 ? ' filled' : '');
+}
+
+
 function buildAndCopy() {
   buildSendBlock();
   // Small delay to let buildSendBlock finish writing to the textarea
@@ -786,7 +703,7 @@ function buildAndCopy() {
   }, 100);
 }
 
-// ── NEXT ROUND ──
+//─ NEXT ROUND ──
 function buildAndAdvance() {
   const resp   = getResponses();
   const prompt = document.getElementById('masterPrompt').value.trim();
@@ -808,6 +725,10 @@ function buildAndAdvance() {
 
   round++;
   const _rn = document.getElementById('roundNum'); if (_rn) _rn.textContent = round;
+
+  // Auto-advance phase: Draft → Refine, Refine stays
+  if (phase === 'draft') phase = 'refine';
+
   // Move compiled prompt into working doc for next round
   document.getElementById('masterPrompt').value = currentSendBlock || prompt || '';
 
@@ -821,14 +742,16 @@ function buildAndAdvance() {
   feedbackBlock = '';
 
   renderAll();
+  renderPhaseBar();
   renderHistory();
   updateBackButton();
   saveState();
   updateStatusBar();
-  toast(`✅ Round ${round} started!`);
+  const phaseLabel = PHASES.find(p => p.id === phase)?.label || phase;
+  toast(`✅ Round ${round} started — ${phaseLabel}`);
 }
 
-// ── BACK ONE ROUND ──
+//─ BACK ONE ROUND ──
 function goBackRound() {
   if (history.length === 0) { toast('⚠️ No previous round to go back to'); return; }
   if (!confirm('Go back to Round ' + history[history.length - 1].round + '? Current round will be lost.')) return;
@@ -868,7 +791,7 @@ function updateBackButton() {
   }
 }
 
-// ── HISTORY ──
+//─ HISTORY ──
 function openHistory() {
   document.getElementById('historyDrawer').classList.add('open');
   document.getElementById('overlay').classList.add('show');
@@ -901,11 +824,11 @@ function renderHistory() {
           <span style="color:var(--muted);" id="ha${idx}">▼</span>
         </div>
         <div class="hist-item-body" id="hb${idx}">
-          ${h.prompt ? `<div class="hist-ai-label" style="color:var(--muted);">Prompt</div><div class="hist-text">${esc(h.prompt.substring(0,300))}${h.prompt.length>300?'…':''}</div>` : ''}
+          ${h.prompt ? `<div class="hist-ai-label" style="color:var(--muted);">Prompt</div><div class="hist-text">${esc(h.prompt)}</div>` : ''}
           ${filled.map(id => {
             const ai = getAI(id);
             return `<div class="hist-ai-label" style="color:var(--accent);">${ai ? ai.name : id}</div>
-                    <div class="hist-text">${esc(h.responses[id].substring(0,200))}${h.responses[id].length>200?'…':''}</div>`;
+                    <div class="hist-text">${esc(h.responses[id])}</div>`;
           }).join('')}
           <div style="margin-top:10px;">
             <button class="btn btn-sm" onclick="restoreRound(${idx})">↩ Restore this round</button>
@@ -941,67 +864,83 @@ function restoreRound(idx) {
   toast(`↩ Restored Round ${h.round}`);
 }
 
-// ── EXPORT ──
+//─ EXPORT ──
 function exportTxt() {
-  const resp = getResponses();
-  const projectName = getProjectName();
-  const currentDoc = document.getElementById('masterPrompt').value.trim();
+  const projectName    = getProjectName();
   const projectVersion = getProjectVersion();
-  const versionStr = projectVersion ? `-${projectVersion.replace(/[^a-z0-9.]/gi, '')}` : '';
-  const safeName = projectName.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').substring(0, 40);
+  const versionStr     = projectVersion ? `-${projectVersion.replace(/[^a-z0-9.]/gi, '')}` : '';
+  const safeName       = projectName.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').substring(0, 40);
 
-  const allRounds = [...history, {
-    round, phase,
-    projectName,
-    prompt:    currentDoc,
-    responses: resp,
-    timestamp: new Date().toLocaleTimeString(),
-    isCurrent: true
-  }].filter(h => h.prompt || Object.values(h.responses || {}).some(v => v));
+  saveState(); // ensure latest state is captured
 
-  if (allRounds.length === 0 && !currentDoc) { toast('⚠️ Nothing to export'); return; }
+  const sessionData = localStorage.getItem(LS);
+  if (!sessionData) { toast('⚠️ Nothing to export'); return; }
 
-  // 1. Export transcript
-  if (allRounds.length > 0) {
-    const eq = '═'.repeat(30);
-    let out = `${eq}\nAI HIVE — SESSION TRANSCRIPT\nProject: ${projectName}\nExported: ${new Date().toLocaleString()}\n${eq}\n\n`;
-
-    allRounds.forEach(h => {
-      const phaseLabel = PHASES.find(p => p.id === h.phase)?.label || h.phase || '';
-      out += `${eq}\nROUND ${h.round}${h.isCurrent ? ' (current)' : ''} · ${phaseLabel} — ${h.timestamp}\n${eq}\n\n`;
-      if (h.prompt) out += `PROMPT:\n${'─'.repeat(30)}\n${h.prompt}\n\n`;
-      Object.keys(h.responses || {}).forEach(id => {
-        if (h.responses[id]) {
-          const ai = getAI(id);
-          out += `${(ai ? ai.name : id).toUpperCase()}:\n${'─'.repeat(30)}\n${h.responses[id]}\n\n`;
-        }
-      });
-    });
-
-    const blob1 = new Blob([out], { type: 'text/plain' });
-    const url1  = URL.createObjectURL(blob1);
-    const a1    = document.createElement('a');
-    a1.href = url1; a1.download = `AIHive-${safeName}${versionStr}-Transcript.txt`;
-    a1.click();
-    URL.revokeObjectURL(url1);
-  }
-
-  // 2. Export current document
-  if (currentDoc) {
-    setTimeout(() => {
-      const blob2 = new Blob([currentDoc], { type: 'text/plain' });
-      const url2  = URL.createObjectURL(blob2);
-      const a2    = document.createElement('a');
-      a2.href = url2; a2.download = `AIHive-${safeName}${versionStr}-Document.txt`;
-      a2.click();
-      URL.revokeObjectURL(url2);
-    }, 500);
-  }
-
-  toast('💾 Exported transcript + document');
+  const blob = new Blob([sessionData], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `WaxFrame-${safeName}${versionStr}-Session.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('💾 Session exported');
 }
 
-// ── STATUS BAR ──
+//─ IMPORT ──
+function importSession() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.round || !data.phase || !data.aiList) {
+          toast('⚠️ Not a valid WaxFrame session file'); return;
+        }
+        localStorage.setItem(LS, JSON.stringify(data));
+        toast('✅ Session loaded — restoring…');
+        setTimeout(() => location.reload(), 800);
+      } catch(e) {
+        toast('⚠️ Could not read file — is it a WaxFrame session?');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+//─ SAVE DOCUMENT ──
+function saveDoc() {
+  let doc = document.getElementById('masterPrompt').value.trim();
+  if (!doc) { toast('⚠️ Working Document is empty'); return; }
+
+  // Strip Builder wrapper tags if present
+  const docStart = doc.indexOf('[DOCUMENT START]');
+  const docEnd   = doc.lastIndexOf('[DOCUMENT END]');
+  if (docStart !== -1 && docEnd !== -1) {
+    doc = doc.slice(docStart + 16, docEnd).trim();
+  }
+  // Strip conflicts block if present
+  const conflStart = doc.indexOf('[CONFLICTS START]');
+  if (conflStart !== -1) doc = doc.slice(0, conflStart).trim();
+
+  const projectName    = getProjectName();
+  const projectVersion = getProjectVersion();
+  const versionStr     = projectVersion ? `-${projectVersion.replace(/[^a-z0-9.]/gi, '')}` : '';
+  const safeName       = projectName.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').substring(0, 40);
+  const blob = new Blob([doc], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `WaxFrame-${safeName}${versionStr}-Document.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('💾 Document saved');
+}
+
+//─ STATUS BAR ──
 function updateStatusBar() {
   updateBuildButton();
   const bar      = document.getElementById('statusBar');
@@ -1027,19 +966,16 @@ function updateStatusBar() {
   let state = 'waiting', action = '';
   if (!hasDoc) {
     state  = 'waiting';
-    action = '👋 Step 1 — enter your version, project name and goal, then paste a document or click ⚡ Build & Copy Prompt to start from scratch';
+    action = '👋 Step 1 — enter your project details, then click ✨ Build Prompt [Send to All] to start from scratch, or paste a document first';
   } else if (count === 0) {
     state  = 'waiting';
     action = '📋 Prompt copied — go paste it into each AI tab and wait for responses';
-  } else if (phase === 'review' && hasDoc && !hasSend) {
-    state  = 'ready';
-    action = '👤 User Review — click ⚡ Build & Copy Prompt, then send to your Builder AI only';
   } else if (count < total) {
     state  = 'partial';
-    action = '⏳ ' + (total - count) + ' AI' + (total - count !== 1 ? 's' : '') + ' still waiting — paste remaining responses';
+    action = '⏳ ' + (total - count) + ' AI' + (total - count !== 1 ? 's' : '') + ' still waiting — paste remaining responses, then click 👑 Build Prompt [Send to Builder]';
   } else if (!hasSend) {
     state  = 'ready';
-    action = '⚡ All ' + total + ' AIs responded — click Build Prompt to compile';
+    action = '👑 All ' + total + ' AIs responded — click Build Prompt [Send to Builder] to compile';
   } else {
     state  = 'built';
     action = '✅ Prompt built and copied — paste into AI tabs';
@@ -1049,7 +985,7 @@ function updateStatusBar() {
   if (actionEl) actionEl.textContent = action;
 }
 
-// ── UTILS ──
+//─ UTILS ──
 function toast(msg, ms = 2600) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1062,8 +998,8 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── THEME ──
-const THEME_KEY = 'aihive_theme';
+//─ THEME ──
+const THEME_KEY = 'waxframe_theme';
 
 function setTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
@@ -1080,12 +1016,18 @@ function initTheme() {
   setTheme(saved);
 }
 
-// ── INIT ──
+//─ INIT ──
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   loadState();
-  setHiveMode(hiveMode);
   document.querySelectorAll('textarea').forEach(ta => {
     ta.addEventListener('input', () => saveState());
   });
+  // Auto-detect phase based on whether a document is present
+  const masterPrompt = document.getElementById('masterPrompt');
+  if (masterPrompt) {
+    masterPrompt.addEventListener('input', detectPhaseFromDoc);
+    masterPrompt.addEventListener('input', updateDocCount);
+  }
+  updateDocCount();
 });
