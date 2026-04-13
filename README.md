@@ -4,6 +4,8 @@
 
 **Many minds, one refined result.**
 
+<a href="https://weirdave.github.io/WaxFrame-Free/" target="_blank"><strong>→ Launch WaxFrame Free</strong></a> · <a href="https://weirdave.github.io/WaxFrame-Professional/" target="_blank">⚡ Pro Version</a> · <a href="https://weirdave.gumroad.com/l/WaxFrame" target="_blank">🛒 Buy a License</a>
+
 WaxFrame orchestrates multiple AI assistants to collaboratively create and refine documents. One AI acts as the **Builder** — it owns the document, incorporates all feedback, and produces the updated version each round. The rest act as **Reviewers** — they each give up to three numbered, actionable suggestions. The Builder does both jobs, so having a paid subscription to your chosen Builder AI matters.
 
 ---
