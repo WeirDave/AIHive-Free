@@ -1,16 +1,35 @@
-# WaxFrame
+<div align="center">
 
-<img src="images/Waxframe_logo_v18.png" alt="WaxFrame" width="120">
+<img src="images/Waxframe_logo_v18.png" alt="WaxFrame" width="150">
+
+# WaxFrame Free
 
 **Many minds, one refined result.**
 
-<a href="https://weirdave.github.io/WaxFrame-Free/" target="_blank"><strong>→ Launch WaxFrame Free</strong></a> · <a href="https://weirdave.github.io/WaxFrame-Professional/" target="_blank">⚡ Pro Version</a> · <a href="https://weirdave.gumroad.com/l/WaxFrame" target="_blank">🛒 Buy a License</a>
+Multi-AI document refinement in your browser. One AI acts as the Builder — it owns the document and produces the updated version each round. The rest act as Reviewers — each gives numbered, actionable suggestions. Local-first, zero-install, zero-telemetry.
 
-WaxFrame orchestrates multiple AI assistants to collaboratively create and refine documents. One AI acts as the **Builder** — it owns the document, incorporates all feedback, and produces the updated version each round. The rest act as **Reviewers** — they each give up to three numbered, actionable suggestions. The Builder does both jobs, so having a paid subscription to your chosen Builder AI matters.
+[![Latest Release](https://img.shields.io/github/v/release/WeirDave/WaxFrame-Free?style=for-the-badge&color=6f55b5)](https://github.com/WeirDave/WaxFrame-Free/releases/latest)
+[![License](https://img.shields.io/github/license/WeirDave/WaxFrame-Free?style=for-the-badge)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge)](https://github.com/sponsors/WeirDave)
+
+![Runs in Browser](https://img.shields.io/badge/runs_in_browser-no_install-5fa970?style=flat-square)
+![Local First](https://img.shields.io/badge/local--first-private-5fa970?style=flat-square)
+![No Telemetry](https://img.shields.io/badge/telemetry-none-5fa970?style=flat-square)
+![Stack](https://img.shields.io/badge/stack-Vanilla_JS-6b7280?style=flat-square)
+
+### [→ Launch WaxFrame Free](https://weirdave.github.io/WaxFrame-Free/)
+
+[⚡ Pro Version](https://weirdave.github.io/WaxFrame-Professional/) · [🛒 Buy a License](https://weirdave.gumroad.com/l/WaxFrame) · [Report an Issue](https://github.com/WeirDave/WaxFrame-Free/issues)
+
+</div>
+
+| Light Mode | Dark Mode |
+|-----------|-----------|
+| ![WaxFrame Light Mode](images/readme-screenshot-light.png) | ![WaxFrame Dark Mode](images/readme-screenshot-dark.png) |
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 You have two ways to run WaxFrame:
 
@@ -30,13 +49,9 @@ You can open WaxFrame directly from GitHub Pages without downloading anything. Y
 
 > **Note:** WaxFrame is designed for desktop use. A minimum screen width of 1024px is required.
 
-| Light Mode | Dark Mode |
-|-----------|-----------|
-| ![WaxFrame Light Mode](images/readme-screenshot-light.png) | ![WaxFrame Dark Mode](images/readme-screenshot-dark.png) |
-
 ---
 
-## ✨ Features
+## Features
 
 - **6 built-in AI worker bees** — ChatGPT, Claude, Copilot, Gemini, Grok, Perplexity
 - **Add any AI** — custom name, URL, and auto-fetched favicon
@@ -53,7 +68,7 @@ You can open WaxFrame directly from GitHub Pages without downloading anything. Y
 
 ---
 
-## 🚀 Before You Start
+## Before You Start
 
 Complete these steps every session before building any prompts.
 
@@ -65,9 +80,9 @@ Complete these steps every session before building any prompts.
 
 **Step 2 — Set up your Worker Bees** (sidebar, below Project Details)
 
-- **2a.** Click **Set Builder** next to the AI you want to own the document — the 👑 crown marks your Builder. The Builder compiles all reviewer feedback and produces the updated document each round. This is the most demanding role — choose an AI with a paid subscription and a large context window. Free tier accounts will hit limits quickly on longer documents.
+- **2a.** Click **Set Builder** next to the AI you want to own the document — the crown marks your Builder. The Builder compiles all reviewer feedback and produces the updated document each round. This is the most demanding role — choose an AI with a paid subscription and a large context window. Free tier accounts will hit limits quickly on longer documents.
 - **2b.** Check or uncheck the other AIs to choose who acts as Reviewer this session. Unchecked AIs are hidden from the response cards but stay in your list.
-- **2c.** To add an AI not in the list, click **＋ Add**, enter a name and URL. The favicon is fetched automatically.
+- **2c.** To add an AI not in the list, click **+ Add**, enter a name and URL. The favicon is fetched automatically.
 
 **Step 3 — Add your Working Document** *(optional)*
 
@@ -81,7 +96,7 @@ You're ready. Proceed to the workflow below.
 
 ---
 
-## 📋 The Workflow
+## The Workflow
 
 WaxFrame has two phases. The phase is set automatically based on your document state and advances automatically when you click **Next Round →**.
 
@@ -93,47 +108,47 @@ Use this phase to create the first version of your document.
 
 **Starting from scratch:**
 
-1. Click **✨ Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
-2. Click **📋 Copy** in the Compiled Send Block
+1. Click **Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
+2. Click **Copy** in the Compiled Send Block
 3. Open each AI in a browser tab and paste the prompt
 4. Wait for responses, then paste each one into its response card
-5. Click **👑 Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
-6. Click **📋 Copy** in the Compiled Send Block
+5. Click **Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
+6. Click **Copy** in the Compiled Send Block
 7. Paste into your Builder AI only and wait for its response
 8. Click **Next Round →** to save this round and advance to Refine Text
-9. Click **✕ Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
+9. Click **Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
 10. You are now on Round 2 — Refine Text
 
 **Starting with a document you already have:**
 
 1. Paste your document into the Working Document area
-2. Click **✨ Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
-3. Click **📋 Copy** in the Compiled Send Block
+2. Click **Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
+3. Click **Copy** in the Compiled Send Block
 4. Paste into all AI tabs and collect their feedback
 5. Paste each response into its card
-6. Click **👑 Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
-7. Click **📋 Copy** in the Compiled Send Block
+6. Click **Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
+7. Click **Copy** in the Compiled Send Block
 8. Paste into your Builder AI only and wait for its response
 9. Click **Next Round →** to save this round and advance to Refine Text
-10. Click **✕ Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
+10. Click **Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
 11. You are now on Round 2 — Refine Text
 
 ---
 
 ### Refine Text
 
-Use this phase to iteratively improve the document through multiple rounds of AI review. You are looking for a majority of AIs to respond with "NO CHANGES NEEDED" — you do not need unanimity. Some AIs (notably Grok) will continue suggesting minor changes indefinitely; use your judgement and stop when most are satisfied.
+Use this phase to iteratively improve the document through multiple rounds of AI review. You are looking for a majority of AIs to respond with "NO CHANGES NEEDED" — you do not need unanimity. Some AIs will continue suggesting minor changes indefinitely; use your judgement and stop when most are satisfied.
 
 1. Make sure the current document is in the Working Document area
-2. Click **✨ Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
-3. Click **📋 Copy** in the Compiled Send Block
+2. Click **Build Prompt [Send to All]** — the prompt appears in the Compiled Send Block
+3. Click **Copy** in the Compiled Send Block
 4. Paste into all AI tabs and wait for responses
 5. Paste each response into its card
-6. Click **👑 Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
-7. Click **📋 Copy** in the Compiled Send Block
+6. Click **Build Prompt [Send to Builder]** — the Builder prompt appears in the Compiled Send Block
+7. Click **Copy** in the Compiled Send Block
 8. Paste into your Builder AI only and wait for its response
 9. Click **Next Round →** to save this round
-10. Click **✕ Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
+10. Click **Clear** in the Working Document — clears the old content and focuses it, then press **Ctrl+V** to paste the Builder's response in
 11. Repeat from step 2 until a majority of AIs respond "NO CHANGES NEEDED"
 
 ---
@@ -158,25 +173,25 @@ When you paste the Builder's response into the Working Document you will see it 
 [CONFLICTS END]
 ```
 
-This is normal and expected — WaxFrame uses these tags to reliably extract the document from the Builder's response. You can leave them in while working. When you click **💾 Save Doc** they are automatically stripped so your saved file contains only the clean document text.
+This is normal and expected — WaxFrame uses these tags to reliably extract the document from the Builder's response. You can leave them in while working. When you click **Save Doc** they are automatically stripped so your saved file contains only the clean document text.
 
 ---
 
-## 🐝 How the Build Button Decides What to Build
+## How the Build Button Decides What to Build
 
 The button is context-aware. It reads the current phase and what's on screen, then builds the right prompt automatically:
 
 | Phase | State | Button label | Who gets it |
 |-------|-------|-------------|-------------|
-| Draft | No document, no responses | ✨ Build Prompt [Send to All] | All AIs |
-| Draft / Refine | Document pasted, no responses | 📤 Build Prompt [Send to All] | All AIs |
-| Draft / Refine | Responses pasted | 👑 Build Prompt [Send to Builder] | Builder only |
+| Draft | No document, no responses | Build Prompt [Send to All] | All AIs |
+| Draft / Refine | Document pasted, no responses | Build Prompt [Send to All] | All AIs |
+| Draft / Refine | Responses pasted | Build Prompt [Send to Builder] | Builder only |
 
-The compiled prompt always includes a clear label — **SEND TO ALL AIs** or **⚠️ SEND THIS TO [BUILDER] ONLY** — so you always know who gets it.
+The compiled prompt always includes a clear label — **SEND TO ALL AIs** or **SEND THIS TO [BUILDER] ONLY** — so you always know who gets it.
 
 ---
 
-## 🔧 UI Layout
+## UI Layout
 
 | Area | Purpose |
 |------|---------|
@@ -188,39 +203,50 @@ The compiled prompt always includes a clear label — **SEND TO ALL AIs** or **�
 
 ---
 
-## 🛠 Customization
+## Customization
 
-**Add a custom AI:** Click **＋ Add** in the worker bees panel, enter a name and URL. The favicon is fetched automatically.
+**Add a custom AI:** Click **+ Add** in the worker bees panel, enter a name and URL. The favicon is fetched automatically.
 
-**Change the Builder:** Click **Set Builder** next to any AI. The 👑 crown moves to that AI.
+**Change the Builder:** Click **Set Builder** next to any AI. The crown moves to that AI.
 
 **Sit an AI out for a round:** Uncheck its checkbox. It disappears from the response cards but stays in the list.
 
 **Edit phase instructions:** The instructions shown in the Prompts column are fully editable. Your changes are saved per phase for the duration of the session.
 
-**Switch themes:** Use the ☀️ ⚙️ 🌙 toggle in the top-right corner. Auto follows your OS preference.
+**Switch themes:** Use the theme toggle in the top-right corner. Auto follows your OS preference.
 
 ---
 
-## 💾 Saving and Restoring Sessions
+## Saving and Restoring Sessions
 
 WaxFrame saves your session automatically in your browser's local storage and survives page refreshes. For long-term storage or as a safety backup:
 
-- Click **💾 Export** in the header to save your full session as a `.json` file — this includes all rounds, all responses, and your full history.
-- Click **📂 Import** in the header to load a previously exported session file — everything is restored exactly as you left it.
-- Click **💾 Save Doc** in the Working Document footer to export just the clean document text as a `.txt` file.
+- Click **Export** in the header to save your full session as a `.json` file — this includes all rounds, all responses, and your full history.
+- Click **Import** in the header to load a previously exported session file — everything is restored exactly as you left it.
+- Click **Save Doc** in the Working Document footer to export just the clean document text as a `.txt` file.
 
 > **Tip:** Export your session regularly on long projects. If your computer restarts or your browser clears storage, you can pick right back up from your last export.
 
 ---
 
-## 🔒 Privacy
+## Help & Support
+
+If something isn't working, try a hard refresh first (`Ctrl+Shift+R` / `Cmd+Shift+R`).
+
+- **In-app help:** Click the **Help** button in the top-right header bar. It shows common fixes, captures your environment info automatically, and lets you open a pre-filled bug report.
+- **Report a bug:** [Open a new issue](https://github.com/WeirDave/WaxFrame-Free/issues/new?template=bug_report.yml)
+- **View existing issues:** [GitHub Issues](https://github.com/WeirDave/WaxFrame-Free/issues)
+- **Security vulnerabilities:** Use [private vulnerability reporting](https://github.com/WeirDave/WaxFrame-Free/security/advisories/new) — don't open a public issue.
+
+---
+
+## Privacy
 
 WaxFrame itself sends no data anywhere. Your prompts and responses go directly between you and each AI's website in your browser. Nothing is stored on any server.
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 waxframe/
@@ -245,36 +271,11 @@ waxframe/
 
 ---
 
-## 📄 License
+## License
 
 GNU Affero General Public License v3.0 (AGPL-3.0) — see `LICENSE` for details.
 
 Free to use, modify, and distribute — but any modified version, including one run as a web service, must also be released under AGPL-3.0 with its source code made available.
-
----
-
-## 📦 Version History
-
-### v2.0 — April 2026
-- Rebranded from AI Hive to WaxFrame
-- New tagline: Many minds, one refined result.
-- Mobile blocker added (desktop-only, 1024px minimum)
-- All AI icons converted from .ico and remote URLs to local PNG files
-- Session export/import (JSON) and Save Document (.txt) added
-- User Review phase removed — direct document editing supported at any time
-- Phase auto-detection and auto-advancement
-- localStorage keys updated to waxframe namespace
-
-### v1.2 — March 2026
-- Added version number display in sidebar
-- Corrected license to AGPL-3.0
-
-### v1.1 — Initial public release
-- 2-phase workflow: Draft → Refine Text
-- 6 built-in AI worker bees (ChatGPT, Claude, Copilot, Gemini, Grok, Perplexity)
-- Builder / Reviewer roles with crown indicator
-- Light / Dark / Auto theme
-- Full session history and round restore
 
 ---
 
